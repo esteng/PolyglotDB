@@ -445,7 +445,6 @@ class SummarizedContext(BaseContext):
 
         Parameters
         ----------
-<<<<<<< HEAD
         data : list
             a list returned by cypher
 
@@ -453,15 +452,6 @@ class SummarizedContext(BaseContext):
         -------
         finaldict : dict
             a dictionary in the format for enrichment
-=======
-
-        data : list/dict
-            a list of tuples or a dict
-
-        Returns
-        -------
-        finalDict : dict
-            the data in the dictionary form needed for encoding
 
 
         """
