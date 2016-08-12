@@ -278,6 +278,8 @@ class SummarizedContext(BaseContext):
         q = self.query_graph(word)
 
         allWords = q.all()
+
+
         allPhones = []
         if self.hierarchy.has_type_property('phone','average_duration'):
             statement = '''MATCH (n:{phone_name}_type:{corpus_name})
@@ -289,6 +291,7 @@ class SummarizedContext(BaseContext):
                     allPhones.append(item)
         else:
             allPhones = self.phone_mean_duration(speaker)
+
         duration_dict = {}
         word_totals = {}
         for tup in allPhones:
@@ -442,6 +445,7 @@ class SummarizedContext(BaseContext):
 
         Parameters
         ----------
+<<<<<<< HEAD
         data : list
             a list returned by cypher
 
@@ -449,6 +453,17 @@ class SummarizedContext(BaseContext):
         -------
         finaldict : dict
             a dictionary in the format for enrichment
+=======
+
+        data : list/dict
+            a list of tuples or a dict
+
+        Returns
+        -------
+        finalDict : dict
+            the data in the dictionary form needed for encoding
+
+
         """
         finalDict = {}
         if type(data) == list and len(data[0])==2:
@@ -465,7 +480,9 @@ class SummarizedContext(BaseContext):
                 finalDict.update({r : {'baseline_duration': data[r]}})
         return finalDict
 
+        
     def encode_measure(self, measure):
+
         """
         encode the data into the graph
 
