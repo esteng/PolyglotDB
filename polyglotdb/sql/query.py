@@ -172,11 +172,10 @@ class Lexicon(BasePropertyStore):
                 else:
                     c = Property
                     v = str(v)
-                try:
-                    prop, _ = get_or_create(self.corpus_context.sql_session, c,
+                
+                prop, _ = get_or_create(self.corpus_context.sql_session, c,
                                     annotation = annotation, property_type = pt, value = v)
-                except:
-                    print(pt)
+                
     def get_property_levels(self, property_type, annotation_type = None):
         """
         Searches for matching Property matching property_type, gets property levels from that
