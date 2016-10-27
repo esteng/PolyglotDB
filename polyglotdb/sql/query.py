@@ -1,12 +1,14 @@
-
-
+import time
+import sys
 from sqlalchemy import distinct
 
 from .models import (AnnotationType, PropertyType, Property,
                         NumericProperty, Annotation, Speaker, Discourse,
                         SpeakerProperty, DiscourseProperty, SpeakerAnnotation)
 
-from .helper import get_or_create
+from .helper import get_or_create, get_or_create_all
+
+
 
 class BasePropertyStore(object):
     def __init__(self, corpus_context):
@@ -157,14 +159,19 @@ class Lexicon(BasePropertyStore):
         case_sensitive : boolean
             Defaults to False
         """
+        t0 = time.clock()
         for label, d in data.items():
+
             annotation = self.lookup(label, annotation_type, case_sensitive = case_sensitive)
             if annotation is None:
                 continue
             for k, v in d.items():
+                t1 = time.clock()
                 if v is None or v == "":
                     continue
+
                 pt = self.get_or_create_property_type(k)
+                #shorter
                 if types[k] in [int, float]:
                     c = NumericProperty
                     v = float(v)
@@ -172,10 +179,76 @@ class Lexicon(BasePropertyStore):
                 else:
                     c = Property
                     v = str(v)
-                
+
+                print("c is {}".format(c))
+                print("annotation is {}".format(annotation))
+                print("pt is {}".format(pt))
+                print("value is {}".format(v))
+                t2 = time.clock()
                 prop, _ = get_or_create(self.corpus_context.sql_session, c,
                                     annotation = annotation, property_type = pt, value = v)
-                
+                #longer
+                print("time to getorcreate overall {}".format(time.clock()-t2))
+                print("time to create 1 property: {}".format(time.clock()-t1))
+
+                sys.exit()
+        print("time to create all properties: {}".format(time.clock()-t0))
+
+    def add_properties_once(self, annotation_type, data, types, case_sensitive = False):
+        """
+        Adds properties to the Lexicon
+
+        Parameters
+        ----------
+        annotation_type : str
+            the label of the annotation type
+        data : dict
+            the properties to add
+        types : dict
+            the types of properties to add
+        case_sensitive : boolean
+            Defaults to False
+        """
+        t0 = time.clock()
+        num_annotations = {}
+        p_annotations = {}
+        for label, d in data.items():
+
+            annotation = self.lookup(label, annotation_type, case_sensitive = case_sensitive)
+            if annotation is None:
+                continue
+            for k, v in d.items():
+                t1 = time.clock()
+                if v is None or v == "":
+                    continue
+
+                pt = self.get_or_create_property_type(k)
+                #shorter
+                if types[k] in [int, float]:
+                    c = NumericProperty
+                    v = float(v)
+                    
+                else:
+                    c = Property
+                    v = str(v)
+                t2 = time.clock()
+                #longer
+                if c == NumericProperty:
+                    try:
+                        num_annotations[annotation.id].append((annotation,pt,v))
+                    except KeyError:
+                        num_annotations[annotation.id] = [(annotation,pt,v)]
+                else:
+                    try:
+                        p_annotations[annotation.id].append((annotation, pt,v))
+                    except KeyError:
+                        p_annotations[annotation.id] = [(annotation, pt,v)]
+
+              
+        props, _ = get_or_create_all(self.corpus_context.sql_session, (num_annotations, p_annotations))
+        print("time to create all properties: {}".format(time.clock()-t0))
+
+
     def get_property_levels(self, property_type, annotation_type = None):
         """
         Searches for matching Property matching property_type, gets property levels from that

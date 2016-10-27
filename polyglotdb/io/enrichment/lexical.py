@@ -1,5 +1,9 @@
 import time
 from .helper import parse_file
+import importlib.util
+
+
+
 
 def enrich_lexicon_from_csv(corpus_context, path, case_sensitive = False):
     """
@@ -15,6 +19,7 @@ def enrich_lexicon_from_csv(corpus_context, path, case_sensitive = False):
         Defaults to false
     """
     t0 = time.clock()
+    print("parsing file")
     data, type_data = parse_file(path, case_sensitive = case_sensitive)
     print("time to get data,typedata in enrich_lex_from_csv: {}".format(time.clock()-t0))
     corpus_context.enrich_lexicon(data, type_data, case_sensitive = case_sensitive)
