@@ -211,6 +211,8 @@ def import_lexicon_csvs(corpus_context, typed_data, case_sensitive = False):
         defaults to false
 
     """
+    print("INISDE IMPORT CSVS")
+    t50 = time.clock()
     string_set_template = 'n.{name} = csvLine.{name}'
     float_set_template = 'n.{name} = toFloat(csvLine.{name})'
     int_set_template = 'n.{name} = toInt(csvLine.{name})'
@@ -227,9 +229,12 @@ def import_lexicon_csvs(corpus_context, typed_data, case_sensitive = False):
             template = string_set_template
         properties.append(template.format(name = h))
     properties = ',\n'.join(properties)
+    print("time to make properties {}".format(time.clock()-t50))
     directory = corpus_context.config.temporary_directory('csv')
     path = os.path.join(directory,'lexicon_import.csv')
     lex_path = 'file:///{}'.format(make_path_safe(path))
+    print("time to open dirs {}".format(time.clock()-t50))
+
     if case_sensitive:
         import_statement = '''CYPHER planner=rule USING PERIODIC COMMIT 3000
     LOAD CSV WITH HEADERS FROM "{path}" AS csvLine
@@ -239,7 +244,7 @@ def import_lexicon_csvs(corpus_context, typed_data, case_sensitive = False):
     else:
         import_statement = '''CYPHER planner=rule USING PERIODIC COMMIT 3000
     LOAD CSV WITH HEADERS FROM "{path}" AS csvLine
-    MATCH (n:{word_type}_type:{corpus_name}) where n.label =~ csvLine.label
+    MATCH (n:{word_type}_type:{corpus_name}) where LOWER(n.label) = LOWER(csvLine.label)
     SET {new_properties}'''
 
     statement = import_statement.format(path = lex_path,
@@ -247,8 +252,11 @@ def import_lexicon_csvs(corpus_context, typed_data, case_sensitive = False):
                                 word_type = corpus_context.word_name,
                                 new_properties = properties)
     corpus_context.execute_cypher(statement)
+    print("time to execute cypher  1 {}".format(time.clock()-t50))
+
     for h, v in typed_data.items():
         corpus_context.execute_cypher('CREATE INDEX ON :%s(%s)' % (corpus_context.word_name,h))
+    print("time to execute cypher  2 {}".format(time.clock()-t50))
     #os.remove(path) # FIXME Neo4j 2.3 does not release files
 
 

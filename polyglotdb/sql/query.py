@@ -6,7 +6,7 @@ from .models import (AnnotationType, PropertyType, Property,
                         NumericProperty, Annotation, Speaker, Discourse,
                         SpeakerProperty, DiscourseProperty, SpeakerAnnotation)
 
-from .helper import get_or_create, get_or_create_all
+from .helper import get_or_create
 
 
 
@@ -159,7 +159,7 @@ class Lexicon(BasePropertyStore):
         case_sensitive : boolean
             Defaults to False
         """
-        t0 = time.clock()
+        t20 = time.clock()
         for label, d in data.items():
 
             annotation = self.lookup(label, annotation_type, case_sensitive = case_sensitive)
@@ -192,7 +192,7 @@ class Lexicon(BasePropertyStore):
                 print("time to create 1 property: {}".format(time.clock()-t1))
 
                 sys.exit()
-        print("time to create all properties: {}".format(time.clock()-t0))
+        print("time to create all properties: {}".format(time.clock()-t20))
 
     def add_properties_once(self, annotation_type, data, types, case_sensitive = False):
         """
@@ -209,16 +209,39 @@ class Lexicon(BasePropertyStore):
         case_sensitive : boolean
             Defaults to False
         """
-        t0 = time.clock()
+
+        def add_to_session(session, model, all_props, pt, annotation, value):                  
+            added = False
+            for p in all_props:
+                # if property already found
+                if p.property_type_id == pt.id:
+                    #replace the property with the new one
+                    p.value = v 
+                    p.property_type_id = pt.id
+                    added = True
+                    # print("UPDATING {} {} {}".format(pt, annotation, v))
+                    break
+                    # 
+                #otherwise if new property
+            if not added:
+                # add the property type into the property_type table for that annotation
+                # add the property value into the property table for annotation
+                # print("adding {} {} {}".format(annotation, pt, v))
+                instance = model(annotation_id = annotation.id, property_type = pt, property_type_id = pt.id, value = v)
+                session.add(instance)
+
+
+
+        session = self.corpus_context.sql_session
+        t20 = time.clock()
         num_annotations = {}
         p_annotations = {}
         for label, d in data.items():
 
             annotation = self.lookup(label, annotation_type, case_sensitive = case_sensitive)
-            if annotation is None:
-                continue
+            # if annotation is None:
+            #     continue
             for k, v in d.items():
-                t1 = time.clock()
                 if v is None or v == "":
                     continue
 
@@ -227,26 +250,28 @@ class Lexicon(BasePropertyStore):
                 if types[k] in [int, float]:
                     c = NumericProperty
                     v = float(v)
+
+                    # annotation is target
+                    q = session.query(NumericProperty)
+                    q = q.filter(NumericProperty.annotation_id == annotation.id)
+                    all_props = q.all()
+                    add_to_session(session, NumericProperty, all_props, pt, annotation, v)
                     
                 else:
                     c = Property
                     v = str(v)
-                t2 = time.clock()
-                #longer
-                if c == NumericProperty:
-                    try:
-                        num_annotations[annotation.id].append((annotation,pt,v))
-                    except KeyError:
-                        num_annotations[annotation.id] = [(annotation,pt,v)]
-                else:
-                    try:
-                        p_annotations[annotation.id].append((annotation, pt,v))
-                    except KeyError:
-                        p_annotations[annotation.id] = [(annotation, pt,v)]
 
-              
-        props, _ = get_or_create_all(self.corpus_context.sql_session, (num_annotations, p_annotations))
-        print("time to create all properties: {}".format(time.clock()-t0))
+                    q = session.query(Property)
+                    q = q.filter(Property.annotation_id == annotation.id)
+                    all_props = q.all()
+                    add_to_session(session, Property, all_props, pt, annotation, v)
+                    
+
+
+       
+
+
+        print("time to create all properties: {}".format(time.clock()-t20))
 
 
     def get_property_levels(self, property_type, annotation_type = None):

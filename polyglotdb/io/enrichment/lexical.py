@@ -18,9 +18,9 @@ def enrich_lexicon_from_csv(corpus_context, path, case_sensitive = False):
     case_sensitive : boolean
         Defaults to false
     """
-    t0 = time.clock()
+    t10 = time.clock()
     print("parsing file")
     data, type_data = parse_file(path, case_sensitive = case_sensitive)
-    print("time to get data,typedata in enrich_lex_from_csv: {}".format(time.clock()-t0))
+    print("time to get data,typedata in enrich_lex_from_csv: {}".format(time.clock()-t10))
     corpus_context.enrich_lexicon(data, type_data, case_sensitive = case_sensitive)
-    print("time to finish: {}".format(time.clock()-t0))
+    print("time to finish: {}".format(time.clock()-t10))
