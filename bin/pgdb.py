@@ -104,6 +104,11 @@ def download_influxdb(data_directory, overwrite = False):
     if sys.platform.startswith('win'):
         dist_string = 'windows_amd64.zip'
         path = os.path.join(TEMP_DIR, 'influxdb.zip')
+    # if OSX
+    if sys.platform in ["darwin"]:
+        osx_install_influxdb(influxdb_directory)
+        return True
+
     else:
         dist_string = 'linux_amd64.tar.gz'
         path = os.path.join(TEMP_DIR, 'influxdb.tar.gz')
@@ -119,6 +124,16 @@ def download_influxdb(data_directory, overwrite = False):
             os.rename(os.path.join(data_directory, d), influxdb_directory)
     return True
 
+def osx_install_influxdb(directory):
+    path_to_sh = os.path.join(os.path.dirname(os.path.abspath(__file__)),'install_influxdb_osx.sh')
+    install_proc = subprocess.Popen([path_to_sh, directory],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        stdin = subprocess.DEVNULL,
+        shell = True,
+        restore_signals=False,
+        start_new_session = True)
+
 def configure_neo4j(data_directory):
     neo4j_conf_path = os.path.join(data_directory,'neo4j','conf','neo4j.conf')
     if hasattr(sys, 'frozen'):
@@ -132,17 +147,20 @@ def configure_neo4j(data_directory):
     with open(neo4j_conf_path, 'w') as f:
         f.write(template.format(**CONFIG['Neo4j']))
 
-def configure_influxdb(data_directory):
-    neo4j_conf_path = os.path.join(data_directory,'influxdb','influxdb.conf')
+def configure_influxdb(data_directory, osx = False):
+    if not osx:
+        influxdb_conf_path = os.path.join(data_directory,'influxdb','influxdb.conf')
+    else:
+        influxdb_conf_path = os.path.join(data_directory,'influxdb.conf')
     if hasattr(sys, 'frozen'):
         base_pgdb_dir = os.path.dirname(sys.executable)
     else:
         base_pgdb_dir = os.path.dirname(os.path.abspath(__file__))
-    neo4j_template_path = os.path.join(base_pgdb_dir, 'influxdb.conf')
-    with open(neo4j_template_path, 'r') as f:
+    influxdb_template_path = os.path.join(base_pgdb_dir, 'influxdb.conf')
+    with open(influxdb_template_path, 'r') as f:
         template = f.read()
 
-    with open(neo4j_conf_path, 'w') as f:
+    with open(influxdb_conf_path, 'w') as f:
         f.write(template.format(**CONFIG['InfluxDB']))
 
 def display_help():
@@ -163,24 +181,41 @@ def start(name):
         exe = 'neo4j.bat'
     else:
         exe = 'neo4j'
-
+    osx = False
     neo4j_bin = os.path.join(CONFIG['Data']['directory'],'neo4j','bin',exe)
+    print(neo4j_bin + "is neo4j bin")
     subprocess.call([neo4j_bin,'start'])
     if sys.platform.startswith('win'):
         influxdb_bin = os.path.join(CONFIG['Data']['directory'],'influxdb', 'influxd.exe')
+    elif sys.platform in ["darwin"]:
+        osx = True
     else:
         exe = 'influxd'
         influxdb_bin = os.path.join(CONFIG['Data']['directory'],'influxdb', 'usr','bin', 'influxd')
-    influxdb_conf = os.path.join(CONFIG['Data']['directory'],'influxdb', 'influxdb.conf')
-    influx_proc = subprocess.Popen([influxdb_bin,'-config', influxdb_conf],
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL,
-                                   stdin = subprocess.DEVNULL,
-                                   restore_signals=False,
-                                   start_new_session=True)
-    pid_file = os.path.join(CONFIG_DIR, 'influxd.pid')
-    with open(pid_file, 'w') as f:
-        f.write(str(influx_proc.pid))
+    
+    if not osx:
+        influxdb_conf = os.path.join(CONFIG['Data']['directory'],'influxdb', 'influxdb.conf')
+        influx_proc = subprocess.Popen([influxdb_bin,'-config', influxdb_conf],
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL,
+                                       stdin = subprocess.DEVNULL,
+                                       shell = True,
+                                       restore_signals=False,
+                                       start_new_session = True)
+        pid_file = os.path.join(CONFIG_DIR, 'influxd.pid')
+        with open(pid_file, 'w') as f:
+            f.write(str(influx_proc.pid))
+    else:
+
+        influxdb_conf = os.path.join("/usr/local/etc/", 'influxdb.conf')
+        print("~/.pgdb/data/influxdb/influxd {} {}".format('-config', influxdb_conf))
+        influx_proc = subprocess.Popen(["~/.pgdb/data/influxdb/influxd",'-config', influxdb_conf],
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL,
+                                       stdin = subprocess.DEVNULL,
+                                       shell = True,
+                                       restore_signals=False,
+                                       start_new_session = True)
 
 def stop(name):
     if sys.platform.startswith('win'):
@@ -238,16 +273,23 @@ if __name__ == '__main__':
             user_input = input('No install directory was specified, so required files will be installed to {}. Is that okay? (Y/N)'.format(directory))
             if user_input.lower() != 'y':
                 sys.exit(1)
+
         else:
             CONFIG['Data']['directory'] = directory
             CONFIG['InfluxDB']['data_directory'] = os.path.join(directory, 'influxdb', 'data')
             CONFIG['InfluxDB']['wal_directory'] = os.path.join(directory, 'influxdb', 'wal')
             CONFIG['InfluxDB']['meta_directory'] = os.path.join(directory, 'influxdb', 'meta')
             CONFIG_CHANGED = True
+
+        if sys.platform in ["darwin"]:
+            influx_config_dir = "/usr/local/etc/"
+        else:
+            influx_config_dir = directory
+
         download_neo4j(directory)
         configure_neo4j(directory)
         download_influxdb(directory)
-        configure_influxdb(directory)
+        configure_influxdb(influx_config_dir, sys.platform in ["darwin"])
         try:
             shutil.rmtree(TEMP_DIR)
         except FileNotFoundError:

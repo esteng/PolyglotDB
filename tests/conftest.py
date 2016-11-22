@@ -448,6 +448,8 @@ def partitur_corpus_config(graph_db, partitur_test_dir):
 def praat_path():
     if sys.platform == 'win32':
         return 'praatcon.exe'
+    elif sys.platform in ["darwin"]:
+        return "/Applications/Praat.app/Contents/MacOS/"
     elif os.environ.get('TRAVIS', False):
         return os.path.expanduser('~/tools/mfa_test_data')
     else:

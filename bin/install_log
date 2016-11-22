@@ -1,0 +1,50 @@
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+==> Downloading https://homebrew.bintray.com/bottles/influxdb-1.1.0.el_capitan.bottle.tar.gz
+Already downloaded: /Users/elias/Library/Caches/Homebrew/influxdb-1.1.0.el_capitan.bottle.tar.gz
+==> Pouring influxdb-1.1.0.el_capitan.bottle.tar.gz
+==> Caveats
+To have launchd start influxdb now and restart at login:
+  brew services start influxdb
+Or, if you don't want/need a background service you can just run:
+  influxd -config /usr/local/etc/influxdb.conf
+==> Summary
+🍺  /usr/local/Cellar/influxdb/1.1.0: 7 files, 41.3M
+Already up-to-date.
+Already up-to-date.
+Updated 1 tap (homebrew/core).
+No changes to formulae.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.
+Already up-to-date.

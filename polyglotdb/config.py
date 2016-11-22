@@ -114,7 +114,7 @@ class CorpusConfig(object):
         return '{}:{}'.format(self.graph_host, self.graph_port)
 
     @property
-    def acoustic_conncetion_kwargs(self):
+    def acoustic_connection_kwargs(self):
         kwargs = {'host': self.acoustic_host,
                 'port': self.acoustic_port,
                 'database': self.corpus_name}

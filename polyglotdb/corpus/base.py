@@ -74,13 +74,19 @@ class BaseContext(object):
 
         if sys.platform == 'win32':
             praat_exe = 'praatcon.exe'
+        elif sys.platform in ["darwin"]:
+            praat_exe = "Praat"
         else:
             praat_exe = 'praat'
 
         if getattr(sys, 'frozen', False):
             self.config.praat_path = os.path.join(sys.path[-1], praat_exe)
         else:
-            self.config.praat_path = shutil.which(praat_exe)
+            print("sys not frozen")
+            if sys.platform in ["darwin"]:
+                self.config.praat_path ="/Applications/Praat.app/Contents/MacOS/Praat"
+            else:
+                self.config.praat_path = shutil.which(praat_exe)
 
         self.config.query_behavior = 'speaker'
 
