@@ -183,7 +183,6 @@ def start(name):
         exe = 'neo4j'
     osx = False
     neo4j_bin = os.path.join(CONFIG['Data']['directory'],'neo4j','bin',exe)
-    print(neo4j_bin + "is neo4j bin")
     subprocess.call([neo4j_bin,'start'])
     if sys.platform.startswith('win'):
         influxdb_bin = os.path.join(CONFIG['Data']['directory'],'influxdb', 'influxd.exe')
@@ -208,7 +207,6 @@ def start(name):
     else:
 
         influxdb_conf = os.path.join("/usr/local/etc/", 'influxdb.conf')
-        print("~/.pgdb/data/influxdb/influxd {} {}".format('-config', influxdb_conf))
         influx_proc = subprocess.Popen(["~/.pgdb/data/influxdb/influxd",'-config', influxdb_conf],
                             stdout=subprocess.DEVNULL,
                             stderr=subprocess.DEVNULL,

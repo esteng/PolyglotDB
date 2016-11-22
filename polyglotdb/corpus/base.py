@@ -82,7 +82,6 @@ class BaseContext(object):
         if getattr(sys, 'frozen', False):
             self.config.praat_path = os.path.join(sys.path[-1], praat_exe)
         else:
-            print("sys not frozen")
             if sys.platform in ["darwin"]:
                 self.config.praat_path ="/Applications/Praat.app/Contents/MacOS/Praat"
             else:

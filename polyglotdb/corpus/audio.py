@@ -75,7 +75,6 @@ class AudioContext(object):
 
     def acoustic_client(self):
         client = InfluxDBClient(**self.config.acoustic_connection_kwargs)
-        print(client.__dict__)
         databases = client.get_list_database()
         if self.corpus_name not in databases:
             client.create_database(self.corpus_name)

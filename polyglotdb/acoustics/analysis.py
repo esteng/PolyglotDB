@@ -70,7 +70,6 @@ def acoustic_analysis(corpus_context,
                 call_back = call_back, stop_check = stop_check)
 
 def generate_base_pitch_function(corpus_context, signal = False, gender = None):
-    print(corpus_context.config.praat_path)
     algorithm = corpus_context.config.pitch_algorithm
     freq_lims = (70,300)
     time_step = 0.01
